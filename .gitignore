@@ -1,0 +1,95 @@
+# ===============================
+# Unity generated folders
+# ===============================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# ===============================
+# MemoryCaptures (Unity 2020+)
+# ===============================
+[Mm]emoryCaptures/
+
+# ===============================
+# Recordings (Unity Recorder)
+# ===============================
+[Rr]ecordings/
+
+# ===============================
+# OS / Editor files
+# ===============================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===============================
+# IDE / Editor specific
+# ===============================
+.vscode/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# ===============================
+# Rider
+# ===============================
+.idea/
+*.DotSettings.user
+
+# ===============================
+# Unity crash reports
+# ===============================
+sysinfo.txt
+
+# ===============================
+# Build artifacts
+# ===============================
+*.apk
+*.aab
+*.exe
+*.app
+*.unitypackage
+
+# ===============================
+# Addressables (generated)
+# ===============================
+/Assets/AddressableAssetsData/*/*.bin*
+/Assets/AddressableAssetsData/*/*.json
+/Assets/AddressableAssetsData/*/*.hash
+
+# ===============================
+# StreamingAssets (אם מיוצר אוטומטית)
+# הסר הערה אם אתה כן רוצה לעקוב
+# ===============================
+# /Assets/StreamingAssets/
+
+# ===============================
+# Visual Studio Cache
+# ===============================
+.vs/
+
+# ===============================
+# JetBrains cache
+# ===============================
+.idea/
+
+# ===============================
+# IL2CPP cache
+# ===============================
+il2cpp_cache/
+
+# ===============================
+# Unity meta files – חשוב!
+# ===============================
+!*.meta
