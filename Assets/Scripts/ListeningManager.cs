@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[DefaultExecutionOrder(-100)]
 public class ListeningManager : MonoBehaviour
 {
     public static ListeningManager Instance;
@@ -48,6 +49,14 @@ public class ListeningManager : MonoBehaviour
     }
 
     private void OnListenCanceled(InputAction.CallbackContext context)
+    {
+        if (!IsListening) return;
+
+        IsListening = false;
+        OnListeningStopped?.Invoke();
+    }
+
+    public void ForceStopListening()
     {
         if (!IsListening) return;
 

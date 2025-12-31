@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ListeningZone : MonoBehaviour
@@ -12,14 +13,24 @@ public class ListeningZone : MonoBehaviour
 
     void OnDisable()
     {
+        if (ListeningManager.Instance == null) return;
+
         ListeningManager.Instance.OnListeningStarted -= HandleListeningStarted;
     }
 
     void HandleListeningStarted()
     {
         if (!playerInside) return;
+
+        if (platform == null)
+        {
+            Debug.LogError("HiddenPlatform not assigned in ListeningZone");
+            return;
+        }
+
         platform.Reveal();
     }
+
 
     void OnTriggerEnter2D(Collider2D other)
     {
