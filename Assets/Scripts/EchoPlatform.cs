@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class EchoPlatform : MonoBehaviour
@@ -13,9 +13,20 @@ public class EchoPlatform : MonoBehaviour
     private bool playerInsideZone = false;
     private Coroutine disappearRoutine;
 
+    [Header("Echo")]
+    [SerializeField] private ParticleSystem echoParticles;
+
+    private bool isActive = false;
+
     void Awake()
     {
         SetActive(false);
+
+        if (echoParticles == null)
+            echoParticles = GetComponentInChildren<ParticleSystem>();
+
+        if (echoParticles != null)
+            echoParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     void OnEnable()
@@ -42,7 +53,11 @@ public class EchoPlatform : MonoBehaviour
             disappearRoutine = null;
         }
 
-        SetActive(true);
+        if (!isActive)
+        {
+            SetActive(true);
+            PlayEchoParticles(); // 👈 חיבור החלקיקים
+        }
     }
 
     void HandleListeningStopped()
@@ -64,8 +79,17 @@ public class EchoPlatform : MonoBehaviour
 
     void SetActive(bool active)
     {
+        isActive = active;
+
         platformCollider.enabled = active;
         platformRenderer.enabled = active;
+    }
+
+    void PlayEchoParticles()
+    {
+        if (echoParticles == null) return;
+
+        echoParticles.Play();
     }
 
     void OnTriggerEnter2D(Collider2D other)
