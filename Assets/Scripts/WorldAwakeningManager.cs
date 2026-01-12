@@ -16,6 +16,11 @@ public class WorldAwakeningManager : MonoBehaviour
     [SerializeField] private float minSaturation = 0f; // אפור מוחלט
     [SerializeField] private float maxSaturation = 1f; // צבע מלא
 
+    [Header("Echo Color Control")]
+    [SerializeField] private Material[] echoMaterials;
+    [SerializeField] private float echoMinSaturation = 0.25f;
+    [SerializeField] private float echoMaxSaturation = 0.6f;
+
     [Header("Color Pulse")]
     [SerializeField] private float pulseIntensityBoost = 0.25f;
     [SerializeField] private float pulseDuration = 0.35f;
@@ -38,6 +43,41 @@ public class WorldAwakeningManager : MonoBehaviour
     public static event Action<int> OnStageChanged;
 
     private int lastAppliedStage = -1;
+
+    private ListeningManager listeningManager;
+
+    private void Awake()
+    {
+        listeningManager = FindAnyObjectByType<ListeningManager>();
+    }
+
+    private void OnEnable()
+    {
+        if (listeningManager == null) return;
+
+        listeningManager.OnListeningStarted += HandleListeningStarted;
+        listeningManager.OnListeningStopped += HandleListeningStopped;
+    }
+
+    private void OnDisable()
+    {
+        if (listeningManager == null) return;
+
+        listeningManager.OnListeningStarted -= HandleListeningStarted;
+        listeningManager.OnListeningStopped -= HandleListeningStopped;
+    }
+
+    private void HandleListeningStarted()
+    {
+        // Echo "מתעורר"
+        ApplyEchoSaturation(1f);
+    }
+
+    private void HandleListeningStopped()
+    {
+        // Echo חוזר למצב רדום (אבל לא אפור לגמרי)
+        ApplyEchoSaturation(0f);
+    }
 
     public void ApplyStage(int stage)
     {
@@ -92,6 +132,24 @@ public class WorldAwakeningManager : MonoBehaviour
         float saturation = Mathf.Lerp(minSaturation, maxSaturation, t);
 
         foreach (var mat in saturationMaterials)
+        {
+            if (mat != null)
+                mat.SetFloat("_Saturation", saturation);
+        }
+    }
+
+    public void ApplyEchoSaturation(float normalizedValue)
+    {
+        if (echoMaterials == null || echoMaterials.Length == 0)
+            return;
+
+        float saturation = Mathf.Lerp(
+            echoMinSaturation,
+            echoMaxSaturation,
+            normalizedValue
+        );
+
+        foreach (var mat in echoMaterials)
         {
             if (mat != null)
                 mat.SetFloat("_Saturation", saturation);
