@@ -10,23 +10,13 @@ public class EchoPlatform : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float disappearDelay = 0.3f;
 
-    private bool playerInsideZone = false;
     private Coroutine disappearRoutine;
-
-    [Header("Echo")]
-    [SerializeField] private ParticleSystem echoParticles;
-
-    private bool isActive = false;
+    private bool isActive;
+    private int playersOnPlatform;
 
     void Awake()
     {
         SetActive(false);
-
-        if (echoParticles == null)
-            echoParticles = GetComponentInChildren<ParticleSystem>();
-
-        if (echoParticles != null)
-            echoParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     void OnEnable()
@@ -43,10 +33,8 @@ public class EchoPlatform : MonoBehaviour
         ListeningManager.Instance.OnListeningStopped -= HandleListeningStopped;
     }
 
-    void HandleListeningStarted()
+    public void ActivateFromZone()
     {
-        if (!playerInsideZone) return;
-
         if (disappearRoutine != null)
         {
             StopCoroutine(disappearRoutine);
@@ -54,15 +42,19 @@ public class EchoPlatform : MonoBehaviour
         }
 
         if (!isActive)
-        {
             SetActive(true);
-            PlayEchoParticles(); // 👈 חיבור החלקיקים
-        }
+    }
+
+    void HandleListeningStarted()
+    {
+        // ❗ EchoZone הוא זה שקורא ל־ActivateFromZone
+        // כאן לא עושים כלום
     }
 
     void HandleListeningStopped()
     {
-        if (!platformCollider.enabled) return;
+        if (!isActive) return;
+        if (playersOnPlatform > 0) return;
 
         if (disappearRoutine != null)
             StopCoroutine(disappearRoutine);
@@ -80,27 +72,19 @@ public class EchoPlatform : MonoBehaviour
     void SetActive(bool active)
     {
         isActive = active;
-
         platformCollider.enabled = active;
         platformRenderer.enabled = active;
     }
 
-    void PlayEchoParticles()
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        if (echoParticles == null) return;
-
-        echoParticles.Play();
+        if (collision.collider.CompareTag("Player"))
+            playersOnPlatform++;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionExit2D(Collision2D collision)
     {
-        if (other.CompareTag("Player"))
-            playerInsideZone = true;
-    }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-            playerInsideZone = false;
+        if (collision.collider.CompareTag("Player"))
+            playersOnPlatform = Mathf.Max(0, playersOnPlatform - 1);
     }
 }

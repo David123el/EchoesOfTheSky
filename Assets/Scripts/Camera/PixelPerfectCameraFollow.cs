@@ -23,6 +23,7 @@ public class PixelPerfectCameraFollow : MonoBehaviour
     private Camera cam;
 
     private int lastMoveDirection = 0; // 🔑 שמירת כיוון אחרון
+    private float currentLookAheadX;
 
     void Awake()
     {
@@ -44,12 +45,13 @@ public class PixelPerfectCameraFollow : MonoBehaviour
 
             if (Mathf.Abs(vx) > minVelocityForLookAhead)
             {
-                lastMoveDirection = (int)Mathf.Sign(vx);
+                int dir = (int)Mathf.Sign(vx);
+                currentLookAheadX = dir * lookAheadDistance;
             }
 
             if (lastMoveDirection != 0)
             {
-                pos.x += Mathf.Round(lookAheadDistance) * lastMoveDirection;
+                pos.x += currentLookAheadX;
             }
         }
 
@@ -65,6 +67,10 @@ public class PixelPerfectCameraFollow : MonoBehaviour
 
         pos.z = transform.position.z;
         transform.position = pos;
+
+        float ppu = 16f;
+        pos.x = Mathf.Round(pos.x * ppu) / ppu;
+        pos.y = Mathf.Round(pos.y * ppu) / ppu;
     }
 
 #if UNITY_EDITOR

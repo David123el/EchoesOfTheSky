@@ -9799,7 +9799,7 @@ GameObject:
   - component: {fileID: 2324129149074625808}
   - component: {fileID: 4105063134268860094}
   - component: {fileID: 5266890031396450752}
-  - component: {fileID: 1852963955116745860}
+  - component: {fileID: 9137162715741602065}
   m_Layer: 6
   m_Name: Echo_Platfrom_5_Tiles
   m_TagString: Untagged
@@ -9930,7 +9930,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 5, y: 1}
   m_EdgeRadius: 0
---- !u!114 &1852963955116745860
+--- !u!114 &9137162715741602065
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9939,10 +9939,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 577657470796523111}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1807691bf63021d4aa62ef7e243381dc, type: 3}
+  m_Script: {fileID: 11500000, guid: 2a0f36114f9264347b93c636e969b2f4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AwakenableSprite
-  baseColor: {r: 0, g: 0, b: 0, a: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::EchoPlatform
+  platformCollider: {fileID: 5266890031396450752}
+  platformRenderer: {fileID: 4105063134268860094}
+  disappearDelay: 0.3
 --- !u!1 &5506633675594849777
 GameObject:
   m_ObjectHideFlags: 0
@@ -9953,7 +9955,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6701627002876002530}
   - component: {fileID: 2915683239195401580}
-  - component: {fileID: 4272025881698804687}
+  - component: {fileID: 3500526145768813095}
   m_Layer: 0
   m_Name: EchoZone
   m_TagString: Untagged
@@ -10022,7 +10024,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 10.983703, y: 5.990783}
   m_EdgeRadius: 0
---- !u!114 &4272025881698804687
+--- !u!114 &3500526145768813095
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10031,10 +10033,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5506633675594849777}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a0f36114f9264347b93c636e969b2f4, type: 3}
+  m_Script: {fileID: 11500000, guid: 8e04fb9b73166b044be9a3b71ed097ec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EchoPlatform
-  platformCollider: {fileID: 5266890031396450752}
-  platformRenderer: {fileID: 4105063134268860094}
-  disappearDelay: 0.3
-  echoParticles: {fileID: 5667310411264240008}
+  m_EditorClassIdentifier: Assembly-CSharp::EchoZone
+  platform: {fileID: 9137162715741602065}

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(-100)]
 public class ListeningManager : MonoBehaviour
@@ -12,9 +11,6 @@ public class ListeningManager : MonoBehaviour
 
     public bool IsListening { get; private set; }
 
-    private PlayerInput playerInput;
-    private InputAction listenAction;
-
     void Awake()
     {
         if (Instance != null)
@@ -22,45 +18,20 @@ public class ListeningManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
-
-        playerInput = GetComponent<PlayerInput>();
-        listenAction = playerInput.actions["Listen"];
     }
 
-    void OnEnable()
+    public void SetListening(bool value)
     {
-        listenAction.started += OnListenStarted;
-        listenAction.canceled += OnListenCanceled;
-    }
+        if (IsListening == value)
+            return;
 
-    void OnDisable()
-    {
-        listenAction.started -= OnListenStarted;
-        listenAction.canceled -= OnListenCanceled;
-    }
+        IsListening = value;
 
-    private void OnListenStarted(InputAction.CallbackContext context)
-    {
-        if (IsListening) return;
-
-        IsListening = true;
-        OnListeningStarted?.Invoke();
-    }
-
-    private void OnListenCanceled(InputAction.CallbackContext context)
-    {
-        if (!IsListening) return;
-
-        IsListening = false;
-        OnListeningStopped?.Invoke();
-    }
-
-    public void ForceStopListening()
-    {
-        if (!IsListening) return;
-
-        IsListening = false;
-        OnListeningStopped?.Invoke();
+        if (IsListening)
+            OnListeningStarted?.Invoke();
+        else
+            OnListeningStopped?.Invoke();
     }
 }

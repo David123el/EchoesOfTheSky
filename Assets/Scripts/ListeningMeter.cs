@@ -17,7 +17,7 @@ public class ListeningMeter : MonoBehaviour
     public float MaxMeter => maxMeter;
     public bool IsListening => listening;
 
-    void OnEnable()
+    /*void OnEnable()
     {
         ListeningManager.Instance.OnListeningStarted += StartListening;
         ListeningManager.Instance.OnListeningStopped += StopListening;
@@ -29,7 +29,7 @@ public class ListeningMeter : MonoBehaviour
 
         ListeningManager.Instance.OnListeningStarted -= StartListening;
         ListeningManager.Instance.OnListeningStopped -= StopListening;
-    }
+    }*/
 
     void StartListening()
     {
@@ -78,7 +78,7 @@ public class ListeningMeter : MonoBehaviour
         listening = false;
         cooldownTimer = overloadCooldown;
 
-        ListeningManager.Instance.ForceStopListening();
+        //ListeningManager.Instance.BlockListening(float duration);
         Debug.Log("Listening Overload!");
     }
 }

@@ -1,36 +1,37 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   // New Input System
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
-    public bool isMovingRight;
-
     [Header("Movement")]
-    public float moveSpeed = 6f;
-    public float acceleration = 18f;
-    public float deceleration = 28f;
-    public float velocityPower = 1f;
+    [SerializeField] private float moveSpeed = 6f;
+    [SerializeField] private float acceleration = 18f;
+    [SerializeField] private float deceleration = 28f;
 
     [Header("Jump")]
-    public float jumpForce = 11f;
-    public float coyoteTime = 0.1f;
-    public float jumpBufferTime = 0.1f;
+    [SerializeField] private float jumpForce = 11f;
+    [SerializeField] private float coyoteTime = 0.1f;
+    [SerializeField] private float jumpBufferTime = 0.1f;
 
-    [Header("Jump Feel")]
-    public float baseGravity = 3.5f;
-    public float fallGravityMultiplier = 2.2f;
-    public float hangGravityMultiplier = 0.5f;
-    public float hangVelocityThreshold = 0.1f;
+    [Header("Gravity Feel")]
+    [SerializeField] private float baseGravity = 3.5f;
+    [SerializeField] private float fallGravityMultiplier = 2.2f;
+    [SerializeField] private float hangGravityMultiplier = 0.5f;
+    [SerializeField] private float hangVelocityThreshold = 0.1f;
 
     [Header("Ground Check")]
-    public Transform groundCheck;
-    public float groundCheckRadius = 0.15f;
-    public LayerMask groundLayer;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundCheckRadius = 0.15f;
+    [SerializeField] private LayerMask groundLayer;
+
+    [Header("Listening")]
+    [SerializeField] private GameObject listeningUI;
 
     private Rigidbody2D rb;
     private Animator anim;
-    private PlayerInput playerInput;
+    private PlayerInput input;
+
     private InputAction moveAction;
     private InputAction jumpAction;
 
@@ -38,134 +39,162 @@ public class PlayerMovement : MonoBehaviour
     private float coyoteCounter;
     private float jumpBufferCounter;
     private float maxFallSpeed;
-    private bool isGrounded;
-    //private bool wasGrounded;
-    private bool facingRight = true;
-    private bool isListening;
 
-    [SerializeField] private GameObject listeningUI;
-    //[SerializeField] private HiddenPlatform hiddenPlatform;
+    private bool isGrounded;
+    private bool facingRight = true;
+
+    public float VelocityX => rb.linearVelocity.x;
+
+    public bool IsMovingRight { get; private set; }
+    public bool IsGrounded => isGrounded;
+
+    public bool IsListening =>
+        isGrounded && Mathf.Abs(rb.linearVelocity.x) < 0.1f;
+
+    private ListeningZone currentListeningZone;
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.TryGetComponent(out ListeningZone zone))
+            currentListeningZone = zone;
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.TryGetComponent(out ListeningZone zone) &&
+            currentListeningZone == zone)
+        {
+            currentListeningZone = null;
+        }
+    }
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        playerInput = GetComponent<PlayerInput>();
-        //hiddenPlatform = FindAnyObjectByType<HiddenPlatform>();
+        input = GetComponent<PlayerInput>();
 
-        moveAction = playerInput.actions["Move"];
-        jumpAction = playerInput.actions["Jump"];
+        moveAction = input.actions["Move"];
+        jumpAction = input.actions["Jump"];
 
         rb.freezeRotation = true;
-        rb.interpolation = RigidbodyInterpolation2D.None; // חשוב לפיקסל־ארט
         rb.gravityScale = baseGravity;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
     void Update()
     {
         inputX = moveAction.ReadValue<Vector2>().x;
 
-        if (inputX >= 1)
-            isMovingRight = true;
-        else isMovingRight = false;
+        if (Mathf.Abs(inputX) > 0.01f)
+        {
+            IsMovingRight = inputX > 0f;
+        }
 
-        // Ground check
+        bool canListen =
+    isGrounded &&
+    Mathf.Abs(rb.linearVelocity.x) < 0.05f &&
+    currentListeningZone != null;
+
+        ListeningManager.Instance?.SetListening(canListen);
+
+        // UI
+        listeningUI.SetActive(canListen);
+
+        CheckGround();
+        HandleJumpBuffer();
+        HandleJump();
+        HandleGravity();
+        HandleFlip();
+        UpdateAnimation();
+
+        listeningUI.SetActive(IsListening);
+    }
+
+    void FixedUpdate()
+    {
+        float targetSpeed = inputX * moveSpeed;
+        float speedDiff = targetSpeed - rb.linearVelocity.x;
+
+        float accelRate = Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration;
+        float movement = speedDiff * accelRate;
+
+        rb.AddForce(Vector2.right * movement);
+    }
+
+    // =====================
+    // Ground & Jump
+    // =====================
+
+    void CheckGround()
+    {
         isGrounded = Physics2D.OverlapCircle(
             groundCheck.position,
             groundCheckRadius,
             groundLayer
         );
 
-        // Stores hardest fall
-        if (!isGrounded)
+        if (isGrounded)
         {
+            coyoteCounter = coyoteTime;
+            maxFallSpeed = 0f;
+        }
+        else
+        {
+            coyoteCounter -= Time.deltaTime;
             maxFallSpeed = Mathf.Min(maxFallSpeed, rb.linearVelocity.y);
         }
+    }
 
-        /*// Landing detection
-        if (!wasGrounded && isGrounded && rb.linearVelocity.y < -2f)
-        {
-            anim.SetTrigger("Land");
-        }*/
-
-        //wasGrounded = isGrounded;
-
-        anim.SetBool("Grounded", isGrounded);
-        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
-
-        // Coyote time
-        if (isGrounded)
-            coyoteCounter = coyoteTime;
-        else
-            coyoteCounter -= Time.deltaTime;
-
-        // Jump buffer
+    void HandleJumpBuffer()
+    {
         if (jumpAction.WasPressedThisFrame())
             jumpBufferCounter = jumpBufferTime;
         else
             jumpBufferCounter -= Time.deltaTime;
+    }
 
-        // Jump
+    void HandleJump()
+    {
         if (jumpBufferCounter > 0 && coyoteCounter > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             jumpBufferCounter = 0;
             coyoteCounter = 0;
-            maxFallSpeed = 0f;
-
-            anim.SetBool("Grounded", false);
-            anim.SetBool("HardLanding", false);
         }
 
-        // Hard Landing
-        if (isGrounded && maxFallSpeed < -8f)
+        if (jumpAction.WasReleasedThisFrame() && rb.linearVelocity.y > 0)
         {
-            anim.SetBool("HardLanding", true);
+            rb.linearVelocity = new Vector2(
+                rb.linearVelocity.x,
+                rb.linearVelocity.y * 0.5f
+            );
+        }
+    }
+
+    // =====================
+    // Gravity Feel
+    // =====================
+
+    void HandleGravity()
+    {
+        if (!isGrounded && rb.linearVelocity.y <= 0f)
+        {
+            rb.gravityScale = baseGravity * fallGravityMultiplier;
+        }
+        else if (Mathf.Abs(rb.linearVelocity.y) < hangVelocityThreshold)
+        {
+            rb.gravityScale = baseGravity * hangGravityMultiplier;
         }
         else
         {
-            anim.SetBool("HardLanding", false);
+            rb.gravityScale = baseGravity;
         }
-
-        // Variable jump height
-        if (jumpAction.WasReleasedThisFrame() && rb.linearVelocity.y > 0)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
-        }
-
-        UpdateAnimation();
-        HandleFlip();
-        ApplyBetterJump();
-
-        // Checks whether the player is listening or not
-        bool isListening =
-            isGrounded &&
-                Mathf.Abs(rb.linearVelocity.x) < 0.1f;
-
-        // Activate Listening UI ICON
-        listeningUI.SetActive(isListening);
-
-        //if (hiddenPlatform != null)
-            //hiddenPlatform.UpdateListening(isListening);
     }
 
-    void FixedUpdate()
-    {
-        float targetSpeed = inputX * moveSpeed;
-        float speedDif = targetSpeed - rb.linearVelocity.x;
-
-        float accelRate = Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration;
-        float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velocityPower) * Mathf.Sign(speedDif);
-
-        rb.AddForce(movement * Vector2.right);
-    }
-
-    void UpdateAnimation()
-    {
-        anim.SetBool("Grounded", isGrounded);
-        anim.SetFloat("Speed", Mathf.Abs(rb.linearVelocity.x));
-        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
-    }
+    // =====================
+    // Visuals
+    // =====================
 
     void HandleFlip()
     {
@@ -183,26 +212,12 @@ public class PlayerMovement : MonoBehaviour
         transform.localScale = scale;
     }
 
-    void ApplyBetterJump()
+    void UpdateAnimation()
     {
-        if (rb.linearVelocity.y < -0.01f)
-        {
-            // Falling – heavier gravity
-            rb.gravityScale = baseGravity * fallGravityMultiplier;
-        }
-        else if (Mathf.Abs(rb.linearVelocity.y) < hangVelocityThreshold)
-        {
-            // Hang time at jump peak
-            rb.gravityScale = baseGravity * hangGravityMultiplier;
-        }
-        else
-        {
-            // Rising normally
-            rb.gravityScale = baseGravity;
-        }
+        anim.SetBool("Grounded", isGrounded);
+        anim.SetFloat("Speed", Mathf.Abs(rb.linearVelocity.x));
+        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
     }
-
-    public bool IsGrounded => isGrounded;
 
     void OnDrawGizmosSelected()
     {

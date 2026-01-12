@@ -3,17 +3,17 @@
 public class InfiniteParallaxX : MonoBehaviour
 {
     [Range(0f, 1f)]
-    public float parallaxFactor = 0.5f;
+    [SerializeField] private float parallaxFactor = 0.5f;
 
-    public float preJumpOffset = 0.1f;
+    [SerializeField] private float preloadOffset = 0.5f;
+
+    //[SerializeField] private float cullDistance = 30f;
 
     private Transform cam;
     private Transform[] tiles;
 
     private float spriteWidth;
     private float lastCamX;
-
-    [SerializeField] private PlayerMovement playerMovement;
 
     void Start()
     {
@@ -33,36 +33,39 @@ public class InfiniteParallaxX : MonoBehaviour
 
     void LateUpdate()
     {
-        float camDelta = cam.position.x - lastCamX;
-        lastCamX = cam.position.x;
+        float camX = cam.position.x;
+        float camDelta = camX - lastCamX;
 
-        // === PARALLAX (יחסי, לא מצטבר) ===
+        // ⛔ סינון רעידות מיקרו
+        if (Mathf.Abs(camDelta) < 0.001f)
+        {
+            camDelta = 0f;
+        }
+
+        lastCamX = camX;
+
+        // Parallax movement
         transform.position += Vector3.right * camDelta * parallaxFactor;
 
-        HandleInfiniteLoop();
+        HandleInfiniteLoop(camX);
     }
 
-    void HandleInfiniteLoop()
+    void HandleInfiniteLoop(float camX)
     {
-        float camX = cam.position.x;
-
         foreach (Transform tile in tiles)
         {
             float distance = tile.position.x - camX;
 
-            if (playerMovement.isMovingRight)
+            /*if (Mathf.Abs(distance) > cullDistance)
+                continue;*/
+
+            if (distance < -spriteWidth - preloadOffset)
             {
-                if (distance < -spriteWidth - preJumpOffset)
-                {
-                    tile.position += Vector3.right * spriteWidth * 3;
-                }
+                tile.position += Vector3.right * spriteWidth * tiles.Length;
             }
-            else if (playerMovement.isMovingRight == false)
+            else if (distance > spriteWidth + preloadOffset)
             {
-                if (distance > spriteWidth + preJumpOffset)
-                {
-                    tile.position -= Vector3.right * spriteWidth * 3;
-                }
+                tile.position -= Vector3.right * spriteWidth * tiles.Length;
             }
         }
     }
