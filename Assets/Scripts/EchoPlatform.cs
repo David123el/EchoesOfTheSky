@@ -6,9 +6,10 @@ public class EchoPlatform : MonoBehaviour
     [Header("References")]
     [SerializeField] private Collider2D platformCollider;
     [SerializeField] private SpriteRenderer platformRenderer;
+    [SerializeField] private ParticleSystem echoParticles;
 
     [Header("Settings")]
-    [SerializeField] private float disappearDelay = 0.3f;
+    [SerializeField] private float disappearDelay = 0.8f;
 
     private Coroutine disappearRoutine;
     private bool isActive;
@@ -19,47 +20,30 @@ public class EchoPlatform : MonoBehaviour
         SetActive(false);
     }
 
-    void OnEnable()
-    {
-        ListeningManager.Instance.OnListeningStarted += HandleListeningStarted;
-        ListeningManager.Instance.OnListeningStopped += HandleListeningStopped;
-    }
-
-    void OnDisable()
-    {
-        if (ListeningManager.Instance == null) return;
-
-        ListeningManager.Instance.OnListeningStarted -= HandleListeningStarted;
-        ListeningManager.Instance.OnListeningStopped -= HandleListeningStopped;
-    }
-
     public void ActivateFromZone()
     {
+        if (isActive)
+            return;
+
         if (disappearRoutine != null)
         {
             StopCoroutine(disappearRoutine);
             disappearRoutine = null;
         }
 
+        SetActive(true);
+    }
+
+    public void RequestDeactivate()
+    {
         if (!isActive)
-            SetActive(true);
-    }
+            return;
 
-    void HandleListeningStarted()
-    {
-        // ❗ EchoZone הוא זה שקורא ל־ActivateFromZone
-        // כאן לא עושים כלום
-    }
+        if (playersOnPlatform > 0)
+            return;
 
-    void HandleListeningStopped()
-    {
-        if (!isActive) return;
-        if (playersOnPlatform > 0) return;
-
-        if (disappearRoutine != null)
-            StopCoroutine(disappearRoutine);
-
-        disappearRoutine = StartCoroutine(DisappearAfterDelay());
+        if (disappearRoutine == null)
+            disappearRoutine = StartCoroutine(DisappearAfterDelay());
     }
 
     IEnumerator DisappearAfterDelay()
@@ -72,8 +56,17 @@ public class EchoPlatform : MonoBehaviour
     void SetActive(bool active)
     {
         isActive = active;
+
         platformCollider.enabled = active;
         platformRenderer.enabled = active;
+
+        if (echoParticles != null)
+        {
+            if (active && !echoParticles.isPlaying)
+                echoParticles.Play();
+            else if (!active && echoParticles.isPlaying)
+                echoParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)

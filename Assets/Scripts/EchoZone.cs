@@ -3,18 +3,18 @@ using UnityEngine;
 public class EchoZone : MonoBehaviour
 {
     [SerializeField] private EchoPlatform platform;
+
     private bool playerInside;
 
-    void Start()
+    void OnEnable()
     {
-        // ğøùîéí ø÷ ëùäÎListeningManager áèåç ÷ééí
-        ListeningManager.Instance.OnListeningStarted += OnListeningStarted;
+        ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
     }
 
-    void OnDestroy()
+    void OnDisable()
     {
-        if (ListeningManager.Instance == null) return;
-        ListeningManager.Instance.OnListeningStarted -= OnListeningStarted;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged -= HandleListeningChanged;
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -29,13 +29,19 @@ public class EchoZone : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
-            playerInside = false;
+        if (!other.CompareTag("Player")) return;
+
+        playerInside = false;
+        platform.RequestDeactivate();
     }
 
-    void OnListeningStarted()
+    void HandleListeningChanged(bool isListening)
     {
-        if (playerInside)
+        if (!playerInside) return;
+
+        if (isListening)
             platform.ActivateFromZone();
+        else
+            platform.RequestDeactivate();
     }
 }

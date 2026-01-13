@@ -9944,7 +9944,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EchoPlatform
   platformCollider: {fileID: 5266890031396450752}
   platformRenderer: {fileID: 4105063134268860094}
-  disappearDelay: 0.3
+  echoParticles: {fileID: 5667310411264240008}
+  disappearDelay: 0.8
 --- !u!1 &5506633675594849777
 GameObject:
   m_ObjectHideFlags: 0

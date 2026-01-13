@@ -7,40 +7,35 @@ public class EnemyListener : MonoBehaviour
     [SerializeField] private float wakeUpTime = 1.0f;
 
     private Transform player;
-    private float listenTimer = 0f;
-    private bool awakened = false;
+    private float listenTimer;
+    private bool awakened;
 
     private SpriteRenderer sr;
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
-
         sr = GetComponent<SpriteRenderer>();
     }
 
     void OnEnable()
     {
-        ListeningManager.Instance.OnListeningStarted += OnListeningStarted;
-        ListeningManager.Instance.OnListeningStopped += OnListeningStopped;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
     }
 
     void OnDisable()
     {
-        if (ListeningManager.Instance == null) return;
-
-        ListeningManager.Instance.OnListeningStarted -= OnListeningStarted;
-        ListeningManager.Instance.OnListeningStopped -= OnListeningStopped;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged -= HandleListeningChanged;
     }
 
-    void OnListeningStarted()
+    void HandleListeningChanged(bool isListening)
     {
         listenTimer = 0f;
-    }
 
-    void OnListeningStopped()
-    {
-        listenTimer = 0f;
+        // כאן אפשר בעתיד להחזיר צבע / אפקט
+        // if (!isListening) sr.color = Color.white;
     }
 
     void Update()
@@ -53,22 +48,15 @@ public class EnemyListener : MonoBehaviour
 
         listenTimer += Time.deltaTime;
 
-        // Visual hint before awakening. Enemy turns red.
-        // Needs color reset when releasing E key.
-        //float t = listenTimer / wakeUpTime;
-        //sr.color = Color.Lerp(sr.color, Color.red, t);
-
         if (listenTimer >= wakeUpTime)
-        {
             Awaken();
-        }
     }
 
     void Awaken()
     {
         awakened = true;
         Debug.Log($"{name} awakened by listening!");
-        // כאן תפעיל AI / אנימציה / תנועה
+        // TODO: הפעלת AI / אנימציה
     }
 
     void OnDrawGizmosSelected()

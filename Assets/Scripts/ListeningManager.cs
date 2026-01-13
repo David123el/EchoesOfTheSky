@@ -6,8 +6,7 @@ public class ListeningManager : MonoBehaviour
 {
     public static ListeningManager Instance;
 
-    public event Action OnListeningStarted;
-    public event Action OnListeningStopped;
+    public event Action<bool> OnListeningChanged;
 
     public bool IsListening { get; private set; }
 
@@ -28,10 +27,6 @@ public class ListeningManager : MonoBehaviour
             return;
 
         IsListening = value;
-
-        if (IsListening)
-            OnListeningStarted?.Invoke();
-        else
-            OnListeningStopped?.Invoke();
+        OnListeningChanged?.Invoke(IsListening);
     }
 }

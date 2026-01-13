@@ -53,30 +53,22 @@ public class WorldAwakeningManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (listeningManager == null) return;
-
-        listeningManager.OnListeningStarted += HandleListeningStarted;
-        listeningManager.OnListeningStopped += HandleListeningStopped;
+        if (ListeningManager.Instance == null) return;
+        ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
     }
 
     private void OnDisable()
     {
-        if (listeningManager == null) return;
-
-        listeningManager.OnListeningStarted -= HandleListeningStarted;
-        listeningManager.OnListeningStopped -= HandleListeningStopped;
+        if (ListeningManager.Instance == null) return;
+        ListeningManager.Instance.OnListeningChanged -= HandleListeningChanged;
     }
 
-    private void HandleListeningStarted()
+    private void HandleListeningChanged(bool isListening)
     {
-        // Echo "מתעורר"
-        ApplyEchoSaturation(1f);
-    }
-
-    private void HandleListeningStopped()
-    {
-        // Echo חוזר למצב רדום (אבל לא אפור לגמרי)
-        ApplyEchoSaturation(0f);
+        if (isListening)
+            ApplyEchoSaturation(1f);
+        else
+            ApplyEchoSaturation(0f);
     }
 
     public void ApplyStage(int stage)
