@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Audio;
 
 public class PlayerAudioController : MonoBehaviour
 {
@@ -14,14 +15,28 @@ public class PlayerAudioController : MonoBehaviour
     [SerializeField] private AudioClip footstep;
     [SerializeField] private AudioClip jump;
     [SerializeField] private AudioClip land;
+    [SerializeField] private AudioClip listenStartSfx;
 
     [Header("Volumes")]
     [Range(0f, 1f)] public float humVolume = 0.15f;
     [Range(0f, 1f)] public float footstepVolume = 0.6f;
     [Range(0f, 1f)] public float jumpVolume = 0.7f;
     [Range(0f, 1f)] public float landVolume = 0.8f;
+    [Range(0f, 1f)] public float listenStartSfxVolume = 0.1f;
 
     private bool wasGrounded;
+
+    void OnEnable()
+    {
+        ListeningManager.Instance.OnListeningChanged += OnListeningChanged;
+    }
+
+    void OnDisable()
+    {
+        if (ListeningManager.Instance == null) return;
+
+        ListeningManager.Instance.OnListeningChanged -= OnListeningChanged;
+    }
 
     void Awake()
     {
@@ -45,10 +60,11 @@ public class PlayerAudioController : MonoBehaviour
             if (!loopSource.isPlaying)
             {
                 loopSource.clip = groundHum;
-                loopSource.volume = humVolume;
                 loopSource.loop = true;
                 loopSource.Play();
             }
+
+            loopSource.volume = humVolume;
         }
         else
         {
@@ -87,5 +103,15 @@ public class PlayerAudioController : MonoBehaviour
     private void PlayLand()
     {
         oneShotSource.PlayOneShot(land, landVolume);
+    }
+
+    void OnListeningChanged(bool isListening)
+    {
+        if (isListening)
+        {
+            oneShotSource.PlayOneShot(listenStartSfx, listenStartSfxVolume);
+            humVolume = 1;
+        }
+        else humVolume = 0.15f;
     }
 }

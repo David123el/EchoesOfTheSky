@@ -10,28 +10,36 @@ public class EchoPlatform : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private float disappearDelay = 0.8f;
+    [SerializeField] private float fadeDuration = 0.12f;
 
     private Coroutine disappearRoutine;
+    private Coroutine fadeRoutine;
+
     private bool isActive;
     private int playersOnPlatform;
 
+    private Material materialInstance;
+
     void Awake()
     {
-        SetActive(false);
+        // 👇 חומר ייחודי לפלטפורמה
+        materialInstance = Instantiate(platformRenderer.sharedMaterial);
+        platformRenderer.material = materialInstance;
+
+        SetVisible(false, instant: true);
     }
+
+    // ========================
+    // 🌊 Public API
+    // ========================
 
     public void ActivateFromZone()
     {
         if (isActive)
             return;
 
-        if (disappearRoutine != null)
-        {
-            StopCoroutine(disappearRoutine);
-            disappearRoutine = null;
-        }
-
-        SetActive(true);
+        StopAllRoutines();
+        SetVisible(true);
     }
 
     public void RequestDeactivate()
@@ -46,28 +54,91 @@ public class EchoPlatform : MonoBehaviour
             disappearRoutine = StartCoroutine(DisappearAfterDelay());
     }
 
+    // ========================
+    // ⏳ Coroutines
+    // ========================
+
     IEnumerator DisappearAfterDelay()
     {
         yield return new WaitForSeconds(disappearDelay);
-        SetActive(false);
+        SetVisible(false);
         disappearRoutine = null;
     }
 
-    void SetActive(bool active)
+    IEnumerator Fade(float from, float to)
     {
-        isActive = active;
+        float t = 0f;
 
-        platformCollider.enabled = active;
-        platformRenderer.enabled = active;
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            float v = Mathf.Lerp(from, to, t / fadeDuration);
+            materialInstance.SetFloat("_Fade", v);
+            yield return null;
+        }
+
+        materialInstance.SetFloat("_Fade", to);
+    }
+
+    // ========================
+    // 🎭 Visual State
+    // ========================
+
+    void SetVisible(bool visible, bool instant = false)
+    {
+        isActive = visible;
+
+        platformCollider.enabled = visible;
+        platformRenderer.enabled = true; // תמיד ON
 
         if (echoParticles != null)
         {
-            if (active && !echoParticles.isPlaying)
+            if (visible)
+            {
                 echoParticles.Play();
-            else if (!active && echoParticles.isPlaying)
-                echoParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+                // 🌈 Pulse צבע קצר
+                FindAnyObjectByType<WorldAwakeningManager>()?.PlayColorPulse();
+            }
+            else
+                echoParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+
+        StopFade();
+
+        if (instant)
+        {
+            materialInstance.SetFloat("_Fade", visible ? 1f : 0f);
+        }
+        else
+        {
+            fadeRoutine = StartCoroutine(
+                Fade(visible ? 0f : 1f, visible ? 1f : 0f)
+            );
         }
     }
+
+    void StopAllRoutines()
+    {
+        if (disappearRoutine != null)
+            StopCoroutine(disappearRoutine);
+
+        StopFade();
+
+        disappearRoutine = null;
+    }
+
+    void StopFade()
+    {
+        if (fadeRoutine != null)
+            StopCoroutine(fadeRoutine);
+
+        fadeRoutine = null;
+    }
+
+    // ========================
+    // 🧍 Player Tracking
+    // ========================
 
     void OnCollisionEnter2D(Collision2D collision)
     {

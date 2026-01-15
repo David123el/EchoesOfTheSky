@@ -4,11 +4,12 @@ public class EchoZone : MonoBehaviour
 {
     [SerializeField] private EchoPlatform platform;
 
-    private bool playerInside;
+    private int playersInside;
 
     void OnEnable()
     {
-        ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
     }
 
     void OnDisable()
@@ -21,9 +22,9 @@ public class EchoZone : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        playerInside = true;
-
-        if (ListeningManager.Instance.IsListening)
+        playersInside++;
+        
+        if (playersInside == 1 && ListeningManager.Instance.IsListening)
             platform.ActivateFromZone();
     }
 
@@ -31,17 +32,18 @@ public class EchoZone : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        playerInside = false;
-        platform.RequestDeactivate();
+        playersInside = Mathf.Max(0, playersInside - 1);
+        
+        if (playersInside == 0)
+            platform.RequestDeactivate();
     }
 
     void HandleListeningChanged(bool isListening)
     {
-        if (!playerInside) return;
+        if (playersInside == 0)
+            return;
 
         if (isListening)
             platform.ActivateFromZone();
-        else
-            platform.RequestDeactivate();
     }
 }
