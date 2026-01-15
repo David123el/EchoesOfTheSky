@@ -3,13 +3,25 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Saturation ("Saturation", Range(0,1)) = 0
+        _Color ("Tint", Color) = (1,1,1,1)
+
+        _Saturation ("Saturation", Range(0,1)) = 1
+        _Brightness ("Brightness", Range(0.5, 1.5)) = 1
         _Fade ("Fade", Range(0,1)) = 1
     }
 
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+        Tags
+        {
+            "Queue"="Transparent"
+            "RenderType"="Transparent"
+            "IgnoreProjector"="True"
+        }
+
+        Cull Off
+        Lighting Off
+        ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
@@ -19,7 +31,9 @@
             #pragma fragment frag
 
             sampler2D _MainTex;
+            float4 _Color;
             float _Saturation;
+            float _Brightness;
             float _Fade;
 
             struct appdata
@@ -44,12 +58,14 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
+                fixed4 col = tex2D(_MainTex, i.uv) * _Color;
 
                 float gray = dot(col.rgb, float3(0.299, 0.587, 0.114));
                 col.rgb = lerp(float3(gray, gray, gray), col.rgb, _Saturation);
 
-                col.a *= _Fade;   // 👈 זה הקריטי
+                col.rgb *= _Brightness;
+                col.a *= _Fade;
+
                 return col;
             }
             ENDCG

@@ -10,6 +10,14 @@ public class ListeningManager : MonoBehaviour
 
     public bool IsListening { get; private set; }
 
+    [Header("Listening Timing")]
+    [SerializeField] private float holdTimeToListen = 0.25f;
+    [SerializeField] private float exitGraceTime = 0.1f;
+
+    private bool canListen;          // מגיע מהשחקן
+    private float holdTimer;
+    private float exitTimer;
+
     void Awake()
     {
         if (Instance != null)
@@ -21,12 +29,61 @@ public class ListeningManager : MonoBehaviour
         Instance = this;
     }
 
-    public void SetListening(bool value)
+    void Update()
     {
-        if (IsListening == value)
-            return;
+        UpdateListeningState();
+    }
 
-        IsListening = value;
-        OnListeningChanged?.Invoke(IsListening);
+    // =========================
+    // 🧠 State Logic
+    // =========================
+
+    void UpdateListeningState()
+    {
+        if (canListen)
+        {
+            exitTimer = 0f;
+
+            if (!IsListening)
+            {
+                holdTimer += Time.deltaTime;
+
+                if (holdTimer >= holdTimeToListen)
+                    EnterListening();
+            }
+        }
+        else
+        {
+            holdTimer = 0f;
+
+            if (IsListening)
+            {
+                exitTimer += Time.deltaTime;
+
+                if (exitTimer >= exitGraceTime)
+                    ExitListening();
+            }
+        }
+    }
+
+    void EnterListening()
+    {
+        IsListening = true;
+        OnListeningChanged?.Invoke(true);
+    }
+
+    void ExitListening()
+    {
+        IsListening = false;
+        OnListeningChanged?.Invoke(false);
+    }
+
+    // =========================
+    // 🔌 Public API
+    // =========================
+
+    public void SetCanListen(bool value)
+    {
+        canListen = value;
     }
 }

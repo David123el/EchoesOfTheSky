@@ -9946,6 +9946,7 @@ MonoBehaviour:
   platformRenderer: {fileID: 4105063134268860094}
   echoParticles: {fileID: 5667310411264240008}
   disappearDelay: 0.8
+  fadeDuration: 0.12
 --- !u!1 &5506633675594849777
 GameObject:
   m_ObjectHideFlags: 0

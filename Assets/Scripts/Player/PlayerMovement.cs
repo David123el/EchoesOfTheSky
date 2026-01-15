@@ -96,7 +96,7 @@ public class PlayerMovement : MonoBehaviour
     Mathf.Abs(rb.linearVelocity.x) < 0.05f &&
     currentListeningZone != null;
 
-        ListeningManager.Instance?.SetListening(canListen);
+        ListeningManager.Instance?.SetCanListen(canListen);
 
         // UI
         listeningUI.SetActive(canListen);
@@ -214,6 +214,10 @@ public class PlayerMovement : MonoBehaviour
 
     void UpdateAnimation()
     {
+        bool moveIntent = Mathf.Abs(inputX) > 0.01f;
+
+        anim.SetBool("Move", moveIntent);
+        anim.SetBool("IsListening", !moveIntent && ListeningManager.Instance.IsListening);
         anim.SetBool("Grounded", isGrounded);
         anim.SetFloat("Speed", Mathf.Abs(rb.linearVelocity.x));
         anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);

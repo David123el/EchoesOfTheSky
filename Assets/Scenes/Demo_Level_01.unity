@@ -1427,6 +1427,10 @@ PrefabInstance:
       value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 9137162715741602065, guid: ec3c59eb37e678343998238df455d624, type: 3}
+      propertyPath: fadeDuration
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9137162715741602065, guid: ec3c59eb37e678343998238df455d624, type: 3}
       propertyPath: echoParticles
       value: 
       objectReference: {fileID: 1135611612}
@@ -2192,6 +2196,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfbfa6701987c11489ff0b68d80a9751, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ListeningManager
+  holdTimeToListen: 0.25
+  exitGraceTime: 0.1
 --- !u!1 &388679002
 GameObject:
   m_ObjectHideFlags: 0
@@ -11449,7 +11455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5360682597adf454bbd1f867cc267028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InfiniteParallaxX
-  parallaxFactor: 0.8
+  parallaxFactor: 0.61
   preloadOffset: 0.5
 --- !u!1 &1427485251
 GameObject:
@@ -28653,6 +28659,14 @@ PrefabInstance:
       propertyPath: m_Resource
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1642201402319982086, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
+      propertyPath: m_Color.b
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1642201402319982086, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
+      propertyPath: m_Color.g
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 1912493244210136415, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -28669,6 +28683,10 @@ PrefabInstance:
       propertyPath: listen
       value: 
       objectReference: {fileID: 8300000, guid: 7d2aac570cb430f4e86342bf4decd0f1, type: 3}
+    - target: {fileID: 4972811304660236666, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 6f000974b31745246acacde686bf840f, type: 2}
     - target: {fileID: 5106369367488566651, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -28684,6 +28702,10 @@ PrefabInstance:
     - target: {fileID: 5233843220276777394, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
       propertyPath: m_Layer
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5729590234673980667, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.409
       objectReference: {fileID: 0}
     - target: {fileID: 9047181996261553150, guid: 09078d30197cdf242a6e59e1fd8c18b1, type: 3}
       propertyPath: m_Layer

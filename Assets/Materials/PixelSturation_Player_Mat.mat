@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PixelSaturaion_Mat
+  m_Name: PixelSturation_Player_Mat
   m_Shader: {fileID: 4800000, guid: 66690e378d119054f932149b69fe8f68, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -41,10 +41,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Brightness: 0.85
+    - _Brightness: 1.1
     - _EnableExternalAlpha: 0
     - _Fade: 1
-    - _Saturation: 0
+    - _Saturation: 1
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
