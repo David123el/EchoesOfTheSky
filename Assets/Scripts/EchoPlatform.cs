@@ -65,7 +65,7 @@ public class EchoPlatform : MonoBehaviour
         disappearRoutine = null;
     }
 
-    IEnumerator Fade(float from, float to)
+    IEnumerator Fade(float from, float to, bool disableColliderAtEnd = false)
     {
         float t = 0f;
 
@@ -78,6 +78,9 @@ public class EchoPlatform : MonoBehaviour
         }
 
         materialInstance.SetFloat("_Fade", to);
+
+        if (disableColliderAtEnd)
+            platformCollider.enabled = false;
     }
 
     // ========================
@@ -88,7 +91,6 @@ public class EchoPlatform : MonoBehaviour
     {
         isActive = visible;
 
-        platformCollider.enabled = visible;
         platformRenderer.enabled = true; // תמיד ON
 
         if (echoParticles != null)
@@ -109,12 +111,20 @@ public class EchoPlatform : MonoBehaviour
         if (instant)
         {
             materialInstance.SetFloat("_Fade", visible ? 1f : 0f);
+            platformCollider.enabled = visible;
         }
         else
         {
-            fadeRoutine = StartCoroutine(
-                Fade(visible ? 0f : 1f, visible ? 1f : 0f)
-            );
+            if (visible)
+            {
+                platformCollider.enabled = true; // 👈 לפני Fade In
+                fadeRoutine = StartCoroutine(Fade(0f, 1f));
+            }
+            else
+            {
+                // 👇 Fade Out קודם, Collider נכבה רק בסוף
+                fadeRoutine = StartCoroutine(Fade(1f, 0f, disableColliderAtEnd: true));
+            }
         }
     }
 
