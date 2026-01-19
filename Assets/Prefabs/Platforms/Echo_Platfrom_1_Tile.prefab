@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3453475295654423774}
   - component: {fileID: 3987338741160959856}
   - component: {fileID: 5096388996150757390}
-  - component: {fileID: 1592812708149779786}
+  - component: {fileID: 7111193570576816105}
   m_Layer: 6
   m_Name: Echo_Platfrom_1_Tile
   m_TagString: Untagged
@@ -142,7 +142,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &1592812708149779786
+--- !u!114 &7111193570576816105
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -151,10 +151,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 552115601595015081}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1807691bf63021d4aa62ef7e243381dc, type: 3}
+  m_Script: {fileID: 11500000, guid: 2a0f36114f9264347b93c636e969b2f4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AwakenableSprite
-  baseColor: {r: 0, g: 0, b: 0, a: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::EchoPlatform
+  platformCollider: {fileID: 5096388996150757390}
+  platformRenderer: {fileID: 3987338741160959856}
+  echoParticles: {fileID: 4687005402023317574}
+  disappearDelay: 0.8
+  fadeDuration: 0.12
 --- !u!1 &790052857548015674
 GameObject:
   m_ObjectHideFlags: 0
@@ -9953,7 +9957,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5957475188810447148}
   - component: {fileID: 2871981731532350626}
-  - component: {fileID: 3811323715682458113}
+  - component: {fileID: 6726013661192516143}
   m_Layer: 0
   m_Name: EchoZone
   m_TagString: Untagged
@@ -10010,7 +10014,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -2.5141006, y: -0.9953921}
+  m_Offset: {x: -3.0324106, y: -0.35268855}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -10020,9 +10024,9 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 10.983703, y: 5.990783}
+  m_Size: {x: 1.405344, y: 1.3881946}
   m_EdgeRadius: 0
---- !u!114 &3811323715682458113
+--- !u!114 &6726013661192516143
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10031,10 +10035,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4883798075260281919}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a0f36114f9264347b93c636e969b2f4, type: 3}
+  m_Script: {fileID: 11500000, guid: 8e04fb9b73166b044be9a3b71ed097ec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EchoPlatform
-  platformCollider: {fileID: 5096388996150757390}
-  platformRenderer: {fileID: 3987338741160959856}
-  disappearDelay: 0.3
-  echoParticles: {fileID: 4687005402023317574}
+  m_EditorClassIdentifier: Assembly-CSharp::EchoZone
+  platform: {fileID: 7111193570576816105}

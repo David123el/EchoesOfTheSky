@@ -3,6 +3,8 @@ using System.Collections;
 
 public class EchoPlatform : MonoBehaviour
 {
+    //[SerializeField] private EchoPlatformProfile profile;
+
     [Header("References")]
     [SerializeField] private Collider2D platformCollider;
     [SerializeField] private SpriteRenderer platformRenderer;

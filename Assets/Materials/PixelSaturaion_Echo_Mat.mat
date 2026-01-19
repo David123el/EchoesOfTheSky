@@ -44,7 +44,7 @@ Material:
     - _Brightness: 1.05
     - _EnableExternalAlpha: 0
     - _Fade: 1
-    - _Saturation: 0.25
+    - _Saturation: 0.6
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

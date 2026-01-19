@@ -3,6 +3,28 @@ using UnityEngine;
 
 public class WorldAwakeningManager : MonoBehaviour
 {
+    // =======================
+    // 🧭 MODE
+    // =======================
+    public enum BuildMode
+    {
+        Demo,
+        FullGame
+    }
+
+    [Header("Build Mode")]
+    [SerializeField] private BuildMode buildMode = BuildMode.Demo;
+
+    // =======================
+    // 🎨 DEMO VISUAL BASELINE
+    // =======================
+    [Header("Demo Settings")]
+    [Tooltip("Base saturation used in demo (no progression)")]
+    [SerializeField] private float demoSaturation = 0.75f;
+
+    // =======================
+    // 🌍 AWAKENING TARGETS
+    // =======================
     [Header("Awakening Targets")]
     [SerializeField] private AwakenableSprite[] awakenables;
 
@@ -10,76 +32,89 @@ public class WorldAwakeningManager : MonoBehaviour
     [SerializeField] private Color[] stageTints;
     [SerializeField] private float[] stageIntensity;
 
-    [Header("Color Awakening (Gray → Color)")]
+    // =======================
+    // 🌈 SATURATION (GRAY → COLOR)
+    // =======================
+    [Header("Saturation Materials")]
     [Tooltip("Materials using PixelSaturation shader")]
     [SerializeField] private Material[] saturationMaterials;
-    [SerializeField] private float minSaturation = 0f; // אפור מוחלט
-    [SerializeField] private float maxSaturation = 1f; // צבע מלא
+    [SerializeField] private float minSaturation = 0f;
+    [SerializeField] private float maxSaturation = 1f;
 
+    // =======================
+    // 🌊 ECHO SATURATION
+    // =======================
     [Header("Echo Color Control")]
     [SerializeField] private Material[] echoMaterials;
     [SerializeField] private float echoMinSaturation = 0.25f;
     [SerializeField] private float echoMaxSaturation = 0.6f;
 
+    // =======================
+    // ✨ COLOR PULSE (FEEDBACK)
+    // =======================
     [Header("Color Pulse")]
     [SerializeField] private float pulseIntensityBoost = 0.25f;
     [SerializeField] private float pulseDuration = 0.35f;
 
     private Coroutine pulseRoutine;
 
-    [SerializeField] private WindowLight[] windowLights;
-
-    [Header("Wind Particles")]
+    // =======================
+    // 🌬️ WIND (FULL GAME ONLY)
+    // =======================
+    [Header("Wind")]
     [SerializeField] private ParticleSystem windParticles;
     [SerializeField] private float[] windEmissionByStage;
     [SerializeField] private float[] windSpeedByStage;
     [SerializeField] private float maxWindSpeed = 10f;
 
+    public float CurrentWindStrength { get; private set; }
+
+    // =======================
+    // 🔊 AUDIO
+    // =======================
     [Header("Audio")]
     [SerializeField] private AudioClip stageUnlockSFX;
-
-    public float CurrentWindStrength { get; private set; }
 
     public static event Action<int> OnStageChanged;
 
     private int lastAppliedStage = -1;
 
-    private ListeningManager listeningManager;
-
-    private void Awake()
-    {
-        listeningManager = FindAnyObjectByType<ListeningManager>();
-    }
-
+    // =======================
+    // 🔊 LISTENING
+    // =======================
     private void OnEnable()
     {
-        if (ListeningManager.Instance == null) return;
-        ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged += HandleListeningChanged;
     }
 
     private void OnDisable()
     {
-        if (ListeningManager.Instance == null) return;
-        ListeningManager.Instance.OnListeningChanged -= HandleListeningChanged;
+        if (ListeningManager.Instance != null)
+            ListeningManager.Instance.OnListeningChanged -= HandleListeningChanged;
     }
 
     private void HandleListeningChanged(bool isListening)
     {
-        if (isListening)
-            ApplyEchoSaturation(1f);
-        else
-            ApplyEchoSaturation(0f);
+        ApplyEchoSaturation(isListening ? 1f : 0f);
     }
 
+    // =======================
+    // 🌍 STAGE APPLY (FULL GAME)
+    // =======================
     public void ApplyStage(int stage)
     {
+        if (buildMode == BuildMode.Demo)
+            return; // ❌ אין progression בדמו
+
         stage = Mathf.Clamp(stage, 0, GetMaxStage());
-        if (stage == lastAppliedStage) return;
+        if (stage == lastAppliedStage)
+            return;
 
         bool isFirstInit = lastAppliedStage == -1;
         lastAppliedStage = stage;
 
-        // 🎨 Awakening visuals (existing system)
+        // 🎨 Awakening visuals
         Color tint = GetValue(stageTints, stage, Color.white);
         float intensity = GetValue(stageIntensity, stage, 1f);
 
@@ -88,53 +123,52 @@ public class WorldAwakeningManager : MonoBehaviour
             awakenable.ApplyAwakening(tint, intensity);
         }
 
-        // Window Lights
-        float t = Mathf.InverseLerp(0, GetMaxStage(), stage);
-
-        foreach (var w in windowLights)
-        {
-            if (w != null)
-                w.ApplyAwakening(t);
-        }
-
-        // 🌈 Gray → Color via Saturation
-        ApplySaturation(stage);
+        // 🌈 Saturation progression
+        ApplyStageSaturation(stage);
 
         // 🌬️ Wind
         UpdateWind(stage);
 
-        // 🔊 SFX (לא בהפעלה הראשונית)
+        // 🔊 SFX
         if (!isFirstInit)
-        {
             AudioManager.Instance?.PlaySFX(stageUnlockSFX, 0.6f);
-        }
-        
+
         OnStageChanged?.Invoke(stage);
     }
 
     // =======================
-    // 🌈 SATURATION CONTROL
+    // 🌈 SATURATION
     // =======================
-    private void ApplySaturation(int stage)
+    private void ApplyStageSaturation(int stage)
     {
-        if (saturationMaterials == null || saturationMaterials.Length == 0)
-            return;
-
         float t = Mathf.InverseLerp(0, GetMaxStage(), stage);
         float saturation = Mathf.Lerp(minSaturation, maxSaturation, t);
+        SetSaturation(saturation);
+    }
 
+    private float GetBaseSaturation()
+    {
+        if (buildMode == BuildMode.Demo)
+            return demoSaturation;
+
+        float t = Mathf.InverseLerp(0, GetMaxStage(), lastAppliedStage);
+        return Mathf.Lerp(minSaturation, maxSaturation, t);
+    }
+
+    private void SetSaturation(float value)
+    {
         foreach (var mat in saturationMaterials)
         {
             if (mat != null)
-                mat.SetFloat("_Saturation", saturation);
+                mat.SetFloat("_Saturation", value);
         }
     }
 
+    // =======================
+    // 🌊 ECHO SATURATION
+    // =======================
     public void ApplyEchoSaturation(float normalizedValue)
     {
-        if (echoMaterials == null || echoMaterials.Length == 0)
-            return;
-
         float saturation = Mathf.Lerp(
             echoMinSaturation,
             echoMaxSaturation,
@@ -148,6 +182,9 @@ public class WorldAwakeningManager : MonoBehaviour
         }
     }
 
+    // =======================
+    // ✨ COLOR PULSE (ALWAYS ON)
+    // =======================
     public void PlayColorPulse()
     {
         if (pulseRoutine != null)
@@ -156,17 +193,46 @@ public class WorldAwakeningManager : MonoBehaviour
         pulseRoutine = StartCoroutine(ColorPulseRoutine());
     }
 
+    private System.Collections.IEnumerator ColorPulseRoutine()
+    {
+        float baseSaturation = GetBaseSaturation();
+        float pulseSaturation = Mathf.Clamp01(baseSaturation + pulseIntensityBoost);
+
+        float t = 0f;
+
+        // 🔼 Fast rise
+        while (t < pulseDuration * 0.4f)
+        {
+            t += Time.deltaTime;
+            SetSaturation(Mathf.Lerp(baseSaturation, pulseSaturation, t / (pulseDuration * 0.4f)));
+            yield return null;
+        }
+
+        t = 0f;
+
+        // 🔽 Slow return
+        while (t < pulseDuration * 0.6f)
+        {
+            t += Time.deltaTime;
+            SetSaturation(Mathf.Lerp(pulseSaturation, baseSaturation, t / (pulseDuration * 0.6f)));
+            yield return null;
+        }
+
+        SetSaturation(baseSaturation);
+    }
+
     // =======================
     // 🌬️ WIND
     // =======================
     private void UpdateWind(int stage)
     {
+        if (windParticles == null)
+            return;
+
         float emissionRate = GetValue(windEmissionByStage, stage, 0f);
         float speed = GetValue(windSpeedByStage, stage, 0f);
 
         CurrentWindStrength = Mathf.InverseLerp(0f, maxWindSpeed, speed);
-
-        if (windParticles == null) return;
 
         var emission = windParticles.emission;
         var main = windParticles.main;
@@ -202,49 +268,5 @@ public class WorldAwakeningManager : MonoBehaviour
             return array[array.Length - 1];
 
         return array[index];
-    }
-
-    private System.Collections.IEnumerator ColorPulseRoutine()
-    {
-        if (saturationMaterials == null || saturationMaterials.Length == 0)
-            yield break;
-
-        float baseStageT = Mathf.InverseLerp(0, GetMaxStage(), lastAppliedStage);
-        float baseSaturation = Mathf.Lerp(minSaturation, maxSaturation, baseStageT);
-
-        float pulseSaturation = Mathf.Clamp01(baseSaturation + pulseIntensityBoost);
-
-        float t = 0f;
-
-        // 🔼 עליה מהירה
-        while (t < pulseDuration * 0.4f)
-        {
-            t += Time.deltaTime;
-            float lerp = t / (pulseDuration * 0.4f);
-            SetSaturation(Mathf.Lerp(baseSaturation, pulseSaturation, lerp));
-            yield return null;
-        }
-
-        t = 0f;
-
-        // 🔽 חזרה איטית
-        while (t < pulseDuration * 0.6f)
-        {
-            t += Time.deltaTime;
-            float lerp = t / (pulseDuration * 0.6f);
-            SetSaturation(Mathf.Lerp(pulseSaturation, baseSaturation, lerp));
-            yield return null;
-        }
-
-        SetSaturation(baseSaturation);
-    }
-
-    private void SetSaturation(float value)
-    {
-        foreach (var mat in saturationMaterials)
-        {
-            if (mat != null)
-                mat.SetFloat("_Saturation", value);
-        }
     }
 }
